@@ -1,0 +1,9 @@
+{
+  "name": "bankr-router-claude-plugin",
+  "description": "Claude Code plugin for seamless Bankr LLM Gateway routing and smart model selection.",
+  "version": "1.0.0",
+  "author": {
+    "name": "TachikomaRed",
+    "url": "https://github.com/tachikomared/bankr-router-claude-plugin"
+  }
+}
