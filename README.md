@@ -1,17 +1,32 @@
 # bankr-router-claude-plugin
 
-**Seamless Bankr LLM Gateway routing and smart model selection for Claude Code.**
+**The intelligent routing layer for Claude Code.**
 
-Routes Claude Code through the [Bankr LLM Gateway](https://docs.bankr.bot/llm-gateway/overview) (`llm.bankr.bot`) with native smart model selection.
+Enhance your Claude Code experience with the full power of the [Bankr LLM Gateway](https://docs.bankr.bot/llm-gateway/overview). This plugin doesn't just proxy your requests; it embeds the **Bankr Smart Router engine** directly into your workflow to optimize every single prompt for model quality, latency, and cost.
 
 ---
 
 ## Why this plugin?
 
-- **Smart Model Selection**: Automatically routes prompts to the best model (Claude, Gemini, GPT, Kimi, Qwen) based on Bankr's intelligent model selector.
-- **Unified Proxy**: Acts as a local smart proxy running on `http://127.0.0.1:8787`.
-- **Zero-Config Routing**: If your `ANTHROPIC_BASE_URL` is already configured for the Bankr Gateway, this plugin adds the intelligent "model-switching" layer on top.
-- **Dependency-free**: No extra daemon processes required—the routing logic is embedded.
+Most Claude Code configurations route everything to a single static model. This plugin changes that by injecting a **real-time decision engine** between Claude Code and the LLM Gateway.
+
+- **Per-Prompt Intelligence**: Every single request is analyzed for "code-heaviness," tool-use requirements, and structure (JSON/YAML) before a model is selected.
+- **Smart Model Reranking**: Automatically prioritizes the highest-performing models for the specific task at hand (e.g., routing complex TypeScript refactors to `qwen3-coder` or `claude-sonnet-4.6`).
+- **Cost-Optimized**: Automatically favors more efficient models (e.g., `gpt-5-mini`, `gemini-3.1-flash-lite`) when the task complexity allows, saving your credits without sacrificing output quality.
+- **Dependency-Free**: The entire intelligence engine is embedded within the plugin. No extra background daemons, no local proxy ports to manage.
+
+---
+
+## How it works: The "Smart Brain"
+
+The plugin embeds the core `bankr-router` engine, which performs a multi-stage analysis on every outgoing request:
+
+1. **Tier Classification**: Classifies your prompt into `SIMPLE`, `MEDIUM`, `COMPLEX`, or `REASONING` tiers based on real-time token estimation and rule-based signals.
+2. **Affinity Scoring**: Uses a proprietary signal detector (detecting patterns like `dockerfile`, `stack trace`, `unit test`) to identify "Code-Heavy" prompts.
+3. **Dynamic Reranking**:
+   - **Code Affinity**: Prioritizes code-specialized models like `qwen3-coder` or `deepseek-v3.2` for programming tasks.
+   - **Tool/Structured Output**: Detects JSON/YAML requirements and routes to models with the highest structured-output reliability (e.g., `claude-sonnet-4.6`, `gpt-5.4`).
+4. **Cost-Efficiency**: Calculates a real-time `savings` score by comparing the cost of the chosen model against a high-cost baseline, ensuring you always get the best value for your tokens.
 
 ---
 
@@ -29,37 +44,19 @@ claude --plugin-dir ./bankr-router-claude-plugin
 
 ---
 
-## Intelligent Routing (What it does)
+## Quick Configuration
 
-The `bankr-router` (embedded in this plugin) intelligently parses your Claude Code prompts and automatically selects the optimal provider:
+1. Install the plugin.
+2. Configure your API key:
+   ```bash
+   /bankr:setup bk_YOUR_API_KEY
+   ```
+3. Set your base URL to the Bankr Gateway (the plugin intercepts this):
+   ```bash
+   export ANTHROPIC_BASE_URL=https://llm.bankr.bot
+   ```
 
-1. **Context-Aware**: Routes standard coding tasks to the best available Claude/Gemini model.
-2. **Cost/Performance**: Automatically switches to OpenRouter (GPT/Kimi/Qwen) for specific tasks to optimize performance vs. cost.
-3. **Automatic Fallback**: If a primary route fails, the router seamlessly falls back to pre-configured backups.
-
-### How it compares to raw Gateway configuration
-
-| Feature | Raw Gateway Config | With Bankr Router Plugin |
-|---|---|---|
-| Routing | Static (all to one) | **Intelligent (Per-Prompt)** |
-| Model Choice | Manual | **Automated** |
-| Fallback | None | **Automatic** |
-
----
-
-## Configuration
-
-Set your credentials via the setup command:
-
-```bash
-/bankr:setup bk_YOUR_API_KEY
-```
-
-Once set, ensure your Claude Code environment uses the router as its base URL:
-
-```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8787
-```
+Claude Code will now automatically route every prompt through the **Smart Router Engine** before reaching the gateway.
 
 ---
 
@@ -69,8 +66,10 @@ export ANTHROPIC_BASE_URL=http://127.0.0.1:8787
 Claude Code
     │
     ▼  (Plugin Logic)
-    │  Picks model per-prompt
-    │  Injects BK_API_KEY
+    │  [Per-Prompt Analysis Engine]
+    │  1. Tier & Code Classification
+    │  2. Dynamic Model Reranking
+    │  3. Token & Cost Optimization
     ▼
 llm.bankr.bot (Bankr LLM Gateway)
     │
@@ -80,8 +79,8 @@ llm.bankr.bot (Bankr LLM Gateway)
 
 ---
 
-## Links
+## Contributing & Links
 
-- Bankr LLM Gateway: https://docs.bankr.bot/llm-gateway/overview
-- Core Router Repo: https://github.com/tachikomared/bankr-router
-- API key: https://bankr.bot/api
+- **Core Router Intelligence**: [bankr-router repository](https://github.com/tachikomared/bankr-router)
+- **Bankr LLM Gateway Docs**: [https://docs.bankr.bot/llm-gateway/overview](https://docs.bankr.bot/llm-gateway/overview)
+- **API Key Console**: [https://bankr.bot/api](https://bankr.bot/api)
