@@ -8,10 +8,10 @@ Routes Claude Code through the [Bankr LLM Gateway](https://docs.bankr.bot/llm-ga
 
 ## Why this plugin?
 
-- **Local-first routing**: Embeds the smart model selector directly into Claude Code.
-- **Dependency-free**: No extra daemon processes required.
-- **Auto-Bankr**: Simplified configuration for the Bankr LLM Gateway.
-- **Open Source**: Free and community-driven.
+- **Smart Model Selection**: Automatically routes prompts to the best model (Claude, Gemini, GPT, Kimi, Qwen) based on Bankr's intelligent model selector.
+- **Unified Proxy**: Acts as a local smart proxy running on `http://127.0.0.1:8787`.
+- **Zero-Config Routing**: If your `ANTHROPIC_BASE_URL` is already configured for the Bankr Gateway, this plugin adds the intelligent "model-switching" layer on top.
+- **Dependency-free**: No extra daemon processes required—the routing logic is embedded.
 
 ---
 
@@ -19,8 +19,7 @@ Routes Claude Code through the [Bankr LLM Gateway](https://docs.bankr.bot/llm-ga
 
 ### Via Plugin Registry
 ```bash
-/plugin marketplace add tachikomared/bankr-router-claude-plugin
-/plugin install bankr-router-claude-plugin
+/plugin install github:tachikomared/bankr-router-claude-plugin
 ```
 
 ### Local Development
@@ -30,16 +29,21 @@ claude --plugin-dir ./bankr-router-claude-plugin
 
 ---
 
-## Features
+## Intelligent Routing (What it does)
 
-### Smart Routing
-Automatically routes prompts to the best model (Claude, Gemini, GPT, Kimi, Qwen) based on Bankr's intelligent model selector.
+The `bankr-router` (embedded in this plugin) intelligently parses your Claude Code prompts and automatically selects the optimal provider:
 
-### Slash Commands
-| Command | Description |
-|---|---|
-| `/bankr:setup [key]` | Configure your Bankr gateway credentials. |
-| `/bankr:status` | Check gateway latency and active route. |
+1. **Context-Aware**: Routes standard coding tasks to the best available Claude/Gemini model.
+2. **Cost/Performance**: Automatically switches to OpenRouter (GPT/Kimi/Qwen) for specific tasks to optimize performance vs. cost.
+3. **Automatic Fallback**: If a primary route fails, the router seamlessly falls back to pre-configured backups.
+
+### How it compares to raw Gateway configuration
+
+| Feature | Raw Gateway Config | With Bankr Router Plugin |
+|---|---|---|
+| Routing | Static (all to one) | **Intelligent (Per-Prompt)** |
+| Model Choice | Manual | **Automated** |
+| Fallback | None | **Automatic** |
 
 ---
 
@@ -51,16 +55,22 @@ Set your credentials via the setup command:
 /bankr:setup bk_YOUR_API_KEY
 ```
 
+Once set, ensure your Claude Code environment uses the router as its base URL:
+
+```bash
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8787
+```
+
 ---
 
-## How it works
+## Architecture
 
 ```
 Claude Code
     │
     ▼  (Plugin Logic)
     │  Picks model per-prompt
-    │  Forwards with your bk_ key
+    │  Injects BK_API_KEY
     ▼
 llm.bankr.bot (Bankr LLM Gateway)
     │
@@ -70,12 +80,8 @@ llm.bankr.bot (Bankr LLM Gateway)
 
 ---
 
-## Contributing
-
-Pull requests are welcome. This plugin is standalone—maintained specifically for the Claude Code ecosystem.
-
 ## Links
 
 - Bankr LLM Gateway: https://docs.bankr.bot/llm-gateway/overview
+- Core Router Repo: https://github.com/tachikomared/bankr-router
 - API key: https://bankr.bot/api
-- Credits: https://bankr.bot/llm
